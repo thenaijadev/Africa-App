@@ -46,7 +46,6 @@ class _CountryDetailsScreenState extends State<CountryDetailsScreen> {
           offset: Offset(10, 0),
           child: ContainerWidget(
             onTap: () {
-              context.read<CountryBloc>().add(CountryEventGetCountries());
               Navigator.pop(context);
             },
             shadow: [
@@ -87,7 +86,8 @@ class _CountryDetailsScreenState extends State<CountryDetailsScreen> {
           } else if (state is CountryStateError) {
             return RefreshIndicator(
               onRefresh: () async {
-                context.read<CountryBloc>().add(CountryEventGetCountries());
+                context.read<CountryBloc>().add(
+                    CountryEventGetCountryDetails(country: widget.country));
               },
               child: ListView(
                 children: [

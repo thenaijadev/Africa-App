@@ -25,7 +25,7 @@ class _CountriesScreenState extends State<CountriesScreen> {
   }
 
   String searchString = '';
-  List<Country> filteredCountries = [];
+  List<Country> countriesToDisplay = [];
 
   @override
   Widget build(BuildContext context) {
@@ -72,18 +72,12 @@ class _CountriesScreenState extends State<CountriesScreen> {
         backgroundColor: Colors.transparent,
       ),
       body: BlocConsumer<CountryBloc, CountryState>(
-        listener: (context, state) {
-          if (state is CountryStateCountries) {
-            setState(() {
-              filteredCountries = state.countries;
-            });
-          }
-        },
+        listener: (context, state) {},
         builder: (context, state) {
           if (state is CountryStateIsLoading) {
             return LoadingWidget(label: "Loading...");
           } else if (state is CountryStateCountries) {
-            final countriesToDisplay = searchString.isEmpty
+            countriesToDisplay = searchString.isEmpty
                 ? state.countries
                 : state.countries.where((country) {
                     return country.name?.common
@@ -92,6 +86,28 @@ class _CountriesScreenState extends State<CountriesScreen> {
                         false;
                   }).toList();
 
+            return RefreshIndicator(
+              onRefresh: () async {
+                context.read<CountryBloc>().add(CountryEventGetCountries());
+              },
+              child: Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: ListView.builder(
+                    itemCount: countriesToDisplay.length,
+                    itemBuilder: (context, index) {
+                      return CountryItemWidget(
+                        onTap: () {
+                          Navigator.of(context).pushNamed(Routes.countryDetails,
+                              arguments:
+                                  countriesToDisplay[index].name?.common);
+                        },
+                        flag: countriesToDisplay[index].flags?.png ?? "",
+                        country: countriesToDisplay[index].name?.common ?? "",
+                      );
+                    }),
+              ),
+            );
+          } else if (state is CountryStateCountryDetails) {
             return RefreshIndicator(
               onRefresh: () async {
                 context.read<CountryBloc>().add(CountryEventGetCountries());
